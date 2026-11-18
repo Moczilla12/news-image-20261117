@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Render the make.fun news-image-20261117 front page, v3 (1024x1024 JPEG).
+"""Render the make.fun news-image-20261117 front page, v4 (1024x1024 JPEG).
 
 Newspaper front page for Tuesday 17 November 2026: 43 verified stories.
 Three large leads with rich AI illustrations (Kerch Bridge, Hormuz strait
-map, Quad summit), ten medium stories (one AI illustration for Ebola, nine
-refined PIL drawings), a world map with story dots, and a 30-brief column.
+map, Quad summit), ten medium stories (five AI illustrations, five refined
+PIL drawings), a world map with story dots, and a 30-brief column.
 All facts verified against reporting dated 17 Nov 2026; nothing invented.
 Output is deterministic.
 """
@@ -301,16 +301,16 @@ ROW2 = [
     dict(n=4, kick="AFRICA  ·  HEALTH", col=GREEN, ai="ebola",
          head="Ebola passes 11,300 cases in Congo",
          fact="DR Congo outbreak reached 11,376 cases and 5,568 deaths."),
-    dict(n=5, kick="GLOBAL  ·  CLIMATE", col=TEAL, art="turbines",
+    dict(n=5, kick="GLOBAL  ·  CLIMATE", col=TEAL, ai="cop31",
          head="COP31 divided over a fossil-fuel phase-out",
          fact="Nations weigh the first draft; the Antalya talks end Friday."),
-    dict(n=6, kick="AMERICAS  ·  HEALTH", col=RED, art="vials",
+    dict(n=6, kick="AMERICAS  ·  HEALTH", col=RED, ai="measles",
          head="US, Mexico and Bolivia lose measles-free status",
          fact="PAHO cites a year of spread; the US has 5,412 cases in 2026."),
-    dict(n=7, kick="US  ·  BUSINESS", col=BROWN, art="chip",
+    dict(n=7, kick="US  ·  BUSINESS", col=BROWN, ai="nvidia",
          head="Nvidia's quarterly sales double to $115.8bn",
          fact="Reported after the close. Earlier the Dow fell 849 points (−1.6%)."),
-    dict(n=8, kick="MIDDLE EAST  ·  GAZA", col=BLUE, art="tents",
+    dict(n=8, kick="MIDDLE EAST  ·  GAZA", col=BLUE, ai="gaza",
          head="Gaza truce at risk of collapse, UN is told",
          fact="Board of Peace report; UN agencies say 1.4m face acute hunger."),
 ]
@@ -336,14 +336,24 @@ ROW3 = [
 
 MED_W = 187
 
+# AI illustrations for medium stories: filename + vertical focus (0=top, 1=bottom).
+# Nvidia uses focus 1.0 so the crop is bottom-biased: the chip (lower half)
+# dominates the slot and the green chart reads as background, not the subject.
+AI_MED = {
+    "ebola": ("media-generation-ebola-tent-0-b4886177-b384-4ea4-b19f-d12ee522edf9.webp", 0.55),
+    "cop31": ("media-generation-cop31-turbines-0-81efe71d-469c-41a3-8966-3c9878b0912b.webp", 0.5),
+    "measles": ("media-generation-measles-vials-0-1f9c6990-d285-4524-8950-2a8fe8c8dfb3.webp", 0.5),
+    "nvidia": ("media-generation-nvidia-chip-0-96477f16-5138-4abb-98b0-1a1f1d37750c.webp", 1.0),
+    "gaza": ("media-generation-gaza-aid-0-c922f5c9-f2a6-4c08-8434-451480e05886.webp", 0.5),
+}
+
 
 def draw_medium_row(stories, y0):
     for i, s in enumerate(stories):
         x = 28 + i * (MED_W + 8)
-        if s.get("ai") == "ebola":
-            im_ai = load_ai(
-                "media-generation-ebola-tent-0-b4886177-b384-4ea4-b19f-d12ee522edf9.webp",
-                MED_W, 68, focus=0.55)
+        if s.get("ai"):
+            fname, focus = AI_MED[s["ai"]]
+            im_ai = load_ai(fname, MED_W, 68, focus=focus)
             img.paste(im_ai, (x, y0))
         else:
             ART[s["art"]](x, y0, MED_W, 68)
